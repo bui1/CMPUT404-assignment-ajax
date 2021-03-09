@@ -22,9 +22,9 @@
 
 
 import flask
-from flask import Flask, request
+from flask import Flask, request, render_template, Response
 import json
-app = Flask(__name__)
+app = Flask(__name__, template_folder='static') 
 app.debug = True
 
 # An example world
@@ -74,27 +74,37 @@ def flask_post_json():
 @app.route("/")
 def hello():
     '''Return something coherent here.. perhaps redirect to /static/index.html '''
-    return None
+    return render_template('index.html')
 
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
-    return None
+    json_req = flask_post_json()
+    myWorld.set(entity, json_req)
+    return Response(json.dumps(json_req), status=200, mimetype="application/json") 
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
     '''you should probably return the world here'''
-    return None
+    return Response(json.dumps(myWorld.world()), status=200, mimetype="application/json") 
 
 @app.route("/entity/<entity>")    
 def get_entity(entity):
     '''This is the GET version of the entity interface, return a representation of the entity'''
-    return None
+    try:
+        result = myWorld.get(entity)
+        if result != None:
+            return Response(json.dumps(result), status=200, mimetype="application/json") 
+        else:
+            return Response(json.dumps(result), status=404, mimetype="application/json") 
+    except:
+        return Response(json.dumps(result), status=404, mimetype="application/json") 
 
 @app.route("/clear", methods=['POST','GET'])
 def clear():
     '''Clear the world out!'''
-    return None
+    myWorld.clear()
+    return Response(json.dumps(myWorld.world()), status=200, mimetype="application/json") 
 
 if __name__ == "__main__":
     app.run()
